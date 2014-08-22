@@ -25,3 +25,9 @@
 	su - -c "cd /home/sysop/aur/package-query; pacman -U package-query-1.0.1-1-i686.pkg.tar.xz; cd ../yaourt; pacman -U yaourt-1.1-1-any.pkg.tar.xz"
 
 	openbox --reconfigure # run this as non-root to reload configuration of openbox
+	
+	pacman -S subversion git cvs aircrack-ng aircrack-ng-scripts ipcalc mysql-clients pacman -S subversion git cvs aircrack-ng aircrack-ng-scripts ipcalc mysql-clients dnstracer dsniff geoip geany php gdb strace minicom mtr dnsutils remmina freerdp kismet lshw lsof macchanger nbtscan john ngrep arpwatch apg netcat screen whois kismet glances openvpn virtualbox xmms pulseaudio aria2 bleachbit cheese clamav dosbox fontconfig gparted imagemagick ipcalc kismet kvirc macchanger xmms gcalctool gucharmap rapidsvn imagemagick gimp wireshark-gtk pinta mtpaint xv gimp bleachbit\
+	dnstracer dsniff geoip geany php gdb strace minicom mtr dnsutils remmina freerdp kismet lshw lsof macchanger \
+	nbtscan john ngrep arpwatch apg netcat screen whois kismet glances openvpn virtualbox xmms pulseaudio aria2 \
+	bleachbit cheese clamav dosbox fontconfig gparted imagemagick ipcalc kismet kvirc macchanger xmms gcalctool gucharmap \
+	rapidsvn imagemagick gimp wireshark-gtk pinta mtpaint xv gimp bleachbit
