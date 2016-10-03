@@ -1,17 +1,17 @@
 # assuming wireless network
 	rfkill unblock 0
 	rfkill unblock 1
-	ip link set wlp18s0 down
-	wifi-menu wlp18s0
+	ip link set wlp1s0 down
+	wifi-menu wlp1s0
 
 # set time
 	ntpdate pool.ntp.org 
 	hwclock --systohc
 
 # update pacman and system
-	pacman-key --init
-	pacman-key --populate
-	pacman -Syu
+#	pacman-key --init
+#	pacman-key --populate
+#	pacman -Syu
 
 # partition disk (manually for now)
 
