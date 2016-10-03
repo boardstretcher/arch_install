@@ -1,6 +1,6 @@
 # bring up lan, sync, add a nonroot user
-	ip link set wlp18s0 up
-	wifi-menu wlp18s0
+	ip link set wlp1s0 up
+	wifi-menu wlp1s0
 	pacman --sync --refresh --sysupgrade
 
 	useradd -G lp,games,video,audio,optical,storage,scanner,power,users sysop
