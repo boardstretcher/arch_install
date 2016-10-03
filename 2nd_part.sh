@@ -10,7 +10,7 @@
 # set hostname, enable dhcp on eth0 interface
 	echo ArchTerminal > /etc/hostname
 	sed -i "s/localhost$/localhost ArchTerminal/g" /etc/hosts
-	sed -i "s/#SigLevel\ =\ Optional\ TrustedOnly/SigLevel\ =\ Optional\ TrustedOnly/g" /etc/pacman.conf
+	# sed -i "s/#SigLevel\ =\ Optional\ TrustedOnly/SigLevel\ =\ Optional\ TrustedOnly/g" /etc/pacman.conf
 
 # install packages needed for installation	
 	pacman -S wireless_tools netctl wpa_supplicant wpa_actiond dialog dhclient grub-bios grub-common os-prober
