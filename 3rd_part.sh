@@ -1,8 +1,22 @@
 # bring up lan, sync, add a nonroot user
-	ip link set wlp1s0 up
-	wifi-menu wlp1s0
-	pacman --sync --refresh --sysupgrade
+	rfkill unblock 0
+	rfkill unblock 1
 
+# enable iwd
+    systemctl enable iwd.service
+	systemctl start iwd.service
+	
+    iwctl
+	station wlan0 scan
+	station wlan0 connection SSIDNAME
+    exit
+	dhclient
+
+# check dhcpd and dns
+    systemd-resolve --status
+
+# repos and user
+	pacman --sync --refresh --sysupgrade
 	useradd -G lp,games,video,audio,optical,storage,scanner,power,users sysop
 	passwd sysop
 

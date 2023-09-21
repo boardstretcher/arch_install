@@ -13,8 +13,8 @@
 	# sed -i "s/#SigLevel\ =\ Optional\ TrustedOnly/SigLevel\ =\ Optional\ TrustedOnly/g" /etc/pacman.conf
 
 # install packages needed for installation	
-	pacman -S wireless_tools netctl wpa_supplicant wpa_actiond dialog dhclient grub-bios grub-common os-prober
-
+	pacman -S iwd wireless_tools netctl wpa_supplicant dialog dhclient grub-bios \
+	grub-common os-prober vim
 	
 # shouldnt have to run wifi-menu at this point, since already connected
 	#wifi-menu
@@ -25,12 +25,13 @@
 
 # standard stuff	
 	mkinitcpio -p linux
-	grub-install --target=i386-pc --recheck /dev/sda
+	#grub-install --target=i386-pc --recheck /dev/sda
+    grub-install --target=x86_64-efi --efi=directory=/boot --bootloader-id=GRUB
 	cp /usr/share/locale/en\@quot/LC_MESSAGES/grub.mo /boot/grub/locale/en.mo
 	grub-mkconfig -o /boot/grub/grub.cfg
 
 # disable ipv6
-	sed -i "s/quiet$/ipv6.disable=1/g" /boot/grub/grub.cfg
+	#sed -i "s/quiet$/ipv6.disable=1/g" /boot/grub/grub.cfg
 
 # set password for root, exit chroot, unmount
 	passwd root

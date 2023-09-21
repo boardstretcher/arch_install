@@ -1,8 +1,15 @@
 # assuming wireless network
 	rfkill unblock 0
 	rfkill unblock 1
-	ip link set wlp1s0 down
-	wifi-menu wlp1s0
+	#ip link set wlp1s0 down
+	#wifi-menu wlp1s0
+    iwctl
+	station wlan0 scan
+	station wlan0 connection SSIDNAME
+	exit
+
+# check dhcpd and dns
+    systemd-resolve --status
 
 # set time
 	ntpdate pool.ntp.org 
@@ -14,8 +21,9 @@
 #	pacman -Syu
 
 # partition disk (manually for now)
-
+    fdisk -l
 	cfdisk /dev/sda
+		# bios not uefi - see 0uefiboot first
 		# new, primary, 20g, bootable
 		# new, primary, 1024m, type, swap
 		# new, primary, all the rest
@@ -29,12 +37,13 @@
 # mount file systems and swap
 	swapon /dev/sda2
 	mount /dev/sda1 /mnt
-	mkdir /mnt/home
-	mount /dev/sda3 /mnt/home
+	mount --mkdir /dev/sda3 /mnt/home
+    mount --mkdir /dev/sda1 /mnt/boot # if uefi
 
 # bootstrap the new filesystem
-	pacstrap /mnt base base-devel
-	genfstab -p /mnt > /mnt/etc/fstab
+	pacstrap /mnt base linux linux-firmware iwd vim 
+	#genfstab -p /mnt > /mnt/etc/fstab
+    genfstab -U /mnt >> /mnt/etc/fstab
 
 # chroot to the new linux system	
 	arch-chroot /mnt
