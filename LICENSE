@@ -1,21 +1,64 @@
-The MIT License (MIT)
+#!/bin/bash
 
-Copyright (c) 2014 boardstretcher
+# Ask for the disk name
+echo "Enter the disk name (e.g., /dev/sda):"
+read DISK
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+# Ensure the disk exists
+if [ ! -b "$DISK" ]; then
+    echo "Error: Disk $DISK not found!"
+    exit 1
+fi
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+# Confirm user action
+read -p "All data on $DISK will be lost! Are you sure? (yes/no) " CONFIRM
+if [ "$CONFIRM" != "yes" ]; then
+    echo "Operation canceled."
+    exit 1
+fi
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+# Unmount any mounted partitions of the selected disk
+umount ${DISK}*
+
+# Remove all partitions
+echo "Deleting all partitions on $DISK..."
+(
+echo o # Delete all partitions
+) | fdisk $DISK
+
+# Create partitions
+echo "Creating new partitions on $DISK..."
+(
+echo g   # Create GPT partition table
+echo n   # New partition
+echo 1   # Partition number 1
+echo     # Default start sector
+echo +2G # 2G EFI partition
+echo t   # Change partition type
+echo 1   # EFI System
+echo n   # New partition
+echo 2   # Partition number 2
+echo     # Default start sector
+echo +450G # 450G Linux partition
+echo n   # New partition
+echo 3   # Partition number 3
+echo     # Default start sector
+echo     # Use remaining space for swap
+echo t   # Change partition type
+echo 3   # Select partition number 3
+echo 19  # Linux swap
+echo w   # Write changes
+) | fdisk $DISK
+
+# Format partitions
+echo "Formatting the EFI partition..."
+mkfs.fat -F32 ${DISK}1
+
+echo "Formatting the Linux partition..."
+mkfs.ext4 ${DISK}2
+
+echo "Setting up the swap partition..."
+mkswap ${DISK}3
+swapon ${DISK}3
+
+echo "All done!"
