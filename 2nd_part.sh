@@ -9,12 +9,15 @@
 
 # set hostname, enable dhcp on eth0 interface
 	echo ArchTerminal > /etc/hostname
-	sed -i "s/localhost$/localhost ArchTerminal/g" /etc/hosts
-	# sed -i "s/#SigLevel\ =\ Optional\ TrustedOnly/SigLevel\ =\ Optional\ TrustedOnly/g" /etc/pacman.conf
+	#sed -i "s/localhost$/localhost ArchTerminal/g" /etc/hosts
+	#sed -i "s/#SigLevel\ =\ Optional\ TrustedOnly/SigLevel\ =\ Optional\ TrustedOnly/g" /etc/pacman.conf
+    echo 127.0.0.1 localhost > /etc/hosts
+	echo ::1 localhost >> /etc/hosts
+	echo 127.0.0.1 ArchTerminal >> /etc/hosts
 
 # install packages needed for installation	
 	pacman -S iwd wireless_tools netctl wpa_supplicant dialog dhclient grub-bios \
-	grub-common os-prober vim
+	grub-common os-prober vim efibootmgr sudo ntp
 	
 # shouldnt have to run wifi-menu at this point, since already connected
 	#wifi-menu
@@ -26,7 +29,7 @@
 # standard stuff	
 	mkinitcpio -p linux
 	#grub-install --target=i386-pc --recheck /dev/sda
-    grub-install --target=x86_64-efi --efi=directory=/boot --bootloader-id=GRUB
+    grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=GRUB
 	cp /usr/share/locale/en\@quot/LC_MESSAGES/grub.mo /boot/grub/locale/en.mo
 	grub-mkconfig -o /boot/grub/grub.cfg
 
