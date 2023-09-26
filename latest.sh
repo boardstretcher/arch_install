@@ -68,11 +68,11 @@
 	#genfstab -p /mnt > /mnt/etc/fstab
     genfstab -U /mnt >> /mnt/etc/fstab
 
-
 # chroot to the new linux system	
 	arch-chroot /mnt
 
-# this part is run inside the chrooted system
+
+###### this part is run inside the chrooted system
 
 # set up language
 	sed -i "s/#  en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/g" /etc/locale.gen
@@ -129,7 +129,7 @@
     systemd-resolve --status
 
 # user
-	useradd -G lp,games,video,audio,optical,storage,scanner,power,users -d /home/sysop sysop
+	useradd -G lp,games,video,audio,optical,storage,scanner,power,users,adm -d /home/sysop sysop
 	passwd sysop
 
 # sudoers
@@ -140,8 +140,9 @@
 	pacman -Syu
 
 # set system time
-	pacman -S ntp
-	ntpdate pool.ntp.org
+	#pacman -S ntp
+	#ntpdate pool.ntp.org
+	timedatectl set-ntp true
 
 # Required packages (Window Manager, Sound, Wireless)
 	#pacman -S alsa-utils xorg-server xorg-xinit xorg-server-utils xf86-video-intel \
@@ -156,17 +157,43 @@
 	#xz lzop w3m  
 
 # keeping it minimal
-	pacman -S intel-ucode wget ufw tcpdump openssh tar gzip xz rsync less bat
+	pacman -S intel-ucode wget ufw tcpdump openssh tar gzip xz rsync less bat dhcpcd \
+	fakeroot bluez-utils 
+    systemctl enable --now dhcpcd.service
 
 # enable firewall
 	systemctl enable --now ufw.service
 
+# lid switch for laptop
+    vim /etc/systemd/logind.conf
+	# uncomment HandleLidSwitch=suspend
+	systemctl restart systemd-logind.service
+
+####### as non-root user
 # aur
 	su - sysop
-	mkdir checkouts
-	cd checkouts
-	git clone https://aur.archlinux.org/paru-bin.git
-	
+	mkdir ~/checkouts
+	cd ~/checkouts
+    git clone https://aur.archlinux.org/package-query.git
+    cd package-query/
+    makepkg -si
+    cd ~/checkouts
+	git clone https://aur.archlinux.org/yaourt.git
+	cd yaourt
+	makepkg -si
+
+# additional aur software
+	yaourt -S system76-firmware-daemon-git	
+	yaourt -S firmware-manager-git
+	yaourt -S system76-driver
+	yaourt -S system76-acpi-dkms
+    yaourt -S brightnessctl
+	systemctl enable --now system76
+	systemctl enable --now com.system76.PowerDaemon.service
+	system76-power profile balanced
+
+
+
 # openbox (non-root)
 	cd ~	
 	mkdir -p .config/openbox
@@ -175,3 +202,25 @@
 	echo "exec openbox-session" > ~/.xinitrc
 	systemctl enable slim.service
 
+# xorg trackpad fix
+cat << EOF > /etc/X11/xorg.conf.d/40-libinput.conf
+Section "InputClass"
+        Identifier "libinput touchpad catchall"
+        MatchIsTouchpad "on"
+        MatchDevicePath "/dev/input/event*"
+        Driver "libinput"
+        Option "Tapping" "on"
+        Option "TapButton1" "1"
+        Option "TapButton2" "3"
+        Option "TapButton3" "2"
+        Option "VertTwoFingerScroll" "on"
+        Option "HorizTwoFingerScroll" "on"
+	Option "NaturalScrolling" "on"
+EndSection
+EOF
+
+echo alias ls='ls --color=auto' >> /etc/bash.bashrc
+echo alias ll='ls -alh' >> /etc/bash.bashrc
+
+# user setup
+cp /etc/X11/xinit/xinitrc .xinitrc
