@@ -174,6 +174,11 @@
 	systemctl enable --now cups.service
 	# connect to http://localhost:631/admin/ and add your printer
 
+# bluetooth
+	pacman -S bluez-utils pulseaudio-bluetooth blueman
+	systemctl enable --now bluetooth.service
+	# run blueman-manager to connect
+
 ####### as non-root user
 # aur
 	su - sysop
