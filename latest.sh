@@ -202,6 +202,13 @@
 	echo "exec openbox-session" > ~/.xinitrc
 	systemctl enable slim.service
 
+# sound
+	pacman -S alsa-utils alsa-lib pulseaudio
+	speaker-test -c 2
+    pulseaudio --check
+    pulseaudio --start
+    amixer sset 'Master' unmute
+
 # xorg trackpad fix
 cat << EOF > /etc/X11/xorg.conf.d/40-libinput.conf
 Section "InputClass"
