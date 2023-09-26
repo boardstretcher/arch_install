@@ -158,7 +158,7 @@
 
 # keeping it minimal
 	pacman -S intel-ucode wget ufw tcpdump openssh tar gzip xz rsync less bat dhcpcd \
-	fakeroot bluez-utils 
+	fakeroot bluez-utils unzip nitrogen tint2 slim slim-themes dmenu cups
     systemctl enable --now dhcpcd.service
 
 # enable firewall
@@ -168,6 +168,11 @@
     vim /etc/systemd/logind.conf
 	# uncomment HandleLidSwitch=suspend
 	systemctl restart systemd-logind.service
+
+# printer setup
+	pacman -S cups hplip
+	systemctl enable --now cups.service
+	# connect to http://localhost:631/admin/ and add your printer
 
 ####### as non-root user
 # aur
@@ -191,8 +196,6 @@
 	systemctl enable --now system76
 	systemctl enable --now com.system76.PowerDaemon.service
 	system76-power profile balanced
-
-
 
 # openbox (non-root)
 	cd ~	
