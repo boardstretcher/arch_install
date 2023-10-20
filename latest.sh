@@ -159,7 +159,8 @@
 # keeping it minimal
 	pacman -S intel-ucode wget ufw tcpdump openssh tar gzip xz rsync less bat dhcpcd \
 	fakeroot bluez-utils unzip nitrogen tint2 slim slim-themes dmenu cups xorg-server xorg-xinit \
- 	openbox
+ 	openbox automake acl autoconf picom util-linux bash-completion podman zenity xdg-desktop-portal \
+  	xdg-desktop-portal-gtk 
 
 # add this to each loader line in grub.cfg
 	initrd /intel-ucode.img
@@ -208,7 +209,7 @@
 	cd yaourt
 	makepkg -si
 
-# additional aur software
+# additional system76 software
 	yaourt -S system76-firmware-daemon-git	
 	yaourt -S firmware-manager-git
 	yaourt -S system76-driver
@@ -217,6 +218,9 @@
 	systemctl enable --now system76
 	systemctl enable --now com.system76.PowerDaemon.service
 	system76-power profile balanced
+
+# additional aur software
+	yaourt -S hstr
 
 # openbox (non-root)
 	cd ~	
@@ -250,8 +254,24 @@ Section "InputClass"
 EndSection
 EOF
 
-echo alias ls='ls --color=auto' >> /etc/bash.bashrc
-echo alias ll='ls -alh' >> /etc/bash.bashrc
+# ls colors fix
+	echo alias ls='ls --color=auto' >> /etc/bash.bashrc
+	echo alias ll='ls -alh' >> /etc/bash.bashrc
 
 # user setup
-cp /etc/X11/xinit/xinitrc .xinitrc
+	echo 'exec openbox-session' > ~/.xinitrc
+
+# podman setup
+cat << EOF > /etc/containers/registries.conf
+[registries.search]
+registries = ['registry.access.redhat.com', 'registry.redhat.io', 'quay.io', 'docker.io']
+EOF
+podman search nginx
+
+# flatpak setup
+	flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+	flatpak update
+
+# additional applications
+	flatpak install nz.mega.MEGAsync
+ 
