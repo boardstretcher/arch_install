@@ -161,6 +161,9 @@
 	fakeroot bluez-utils unzip nitrogen tint2 slim slim-themes dmenu cups xorg-server xorg-xinit \
  	openbox
 
+# add this to each loader line in grub.cfg
+	initrd /intel-ucode.img
+
 # enable dhcpcd
 	systemctl enable --now dhcpcd.service
 
@@ -207,7 +210,7 @@
 	yaourt -S firmware-manager-git
 	yaourt -S system76-driver
 	yaourt -S system76-acpi-dkms
-    yaourt -S brightnessctl
+    	yaourt -S brightnessctl
 	systemctl enable --now system76
 	systemctl enable --now com.system76.PowerDaemon.service
 	system76-power profile balanced
@@ -221,7 +224,7 @@
 	systemctl enable slim.service
 
 # sound
-	pacman -S alsa-utils alsa-lib pulseaudio
+    pacman -S alsa-utils alsa-lib pulseaudio
     pulseaudio --check
     pulseaudio --start
     amixer sset 'Master' unmute
