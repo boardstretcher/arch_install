@@ -188,6 +188,9 @@
 	pacman -S bluez-utils pulseaudio-bluetooth blueman
 	systemctl enable --now bluetooth.service
 	# run blueman-manager to connect
+# network
+	systemctl enable systemd-networkd
+	systemctl enable systemd-resolved
 
  # pre aur
  	pacman -S gcc yajl pkg-config make linux-headers
