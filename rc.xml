@@ -339,12 +339,6 @@
         <command>brightnessctl s +10%</command>
       </action>
     </keybind>
-
-    <keybind key="XF86AudioMute">
-      <action name="Execute">
-        <command>amixer set Master toggle</command>
-      </action>
-    </keybind>
     <keybind key="XF86AudioLowerVolume">
       <action name="Execute">
         <command>amixer set Master 5%-</command>
@@ -355,7 +349,23 @@
         <command>amixer set Master 5%+</command>
       </action>
     </keybind>
+    <keybind key="C-S-1">
+      <action name="Execute">
+      <command>system76-power profile battery</command>
+      </action>
+    </keybind>
+    <keybind key="C-S-2">
+      <action name="Execute">
+        <command>system76-power profile balanced</command>
+      </action>
+    </keybind>
+    <keybind key="C-S-3">
+      <action name="Execute">
+        <command>system76-power profile performance</command>
+      </action>
+    </keybind>
 
+    
     <!-- Keybindings for running applications -->
     <keybind key="W-e">
       <action name="Execute">
