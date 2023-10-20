@@ -158,8 +158,11 @@
 
 # keeping it minimal
 	pacman -S intel-ucode wget ufw tcpdump openssh tar gzip xz rsync less bat dhcpcd \
-	fakeroot bluez-utils unzip nitrogen tint2 slim slim-themes dmenu cups
-    systemctl enable --now dhcpcd.service
+	fakeroot bluez-utils unzip nitrogen tint2 slim slim-themes dmenu cups xorg-server xorg-xinit \
+ 	openbox
+
+# enable dhcpcd
+	systemctl enable --now dhcpcd.service
 
 # enable firewall
 	systemctl enable --now ufw.service
@@ -178,6 +181,9 @@
 	pacman -S bluez-utils pulseaudio-bluetooth blueman
 	systemctl enable --now bluetooth.service
 	# run blueman-manager to connect
+
+ # pre aur
+ 	pacman -S gcc yajl pkg-config make linux-headers
 
 ####### as non-root user
 # aur
