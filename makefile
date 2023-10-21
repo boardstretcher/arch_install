@@ -3,14 +3,13 @@ DISK=/dev/nvme0n1
 .PHONY: all wifi partition filesystem bootstrap
 
 all: warning
-base: wifi partition filesystem bootstrap
+base: wifi partition filesystem bootstrap language network packages01 packages02 \
+user pacman bootloader_efi root_user
 
 warning:
-	echo "WARNING----"
-	echo "you dont want to do that,. y"
-	echo "You SHOULD run each section seperately"
-	echo "because you will have to do part from the install USB, part from the chroot,"
-	echo "part from the rebooted system, and part from the logged in user"
+cat << EOF
+Do NOT run all of this makefile at once. 
+EOF
 
 wifi:
 	@read -p "Enter SSID Name: " SSIDNAME; \
@@ -60,40 +59,43 @@ bootstrap:
 	genfstab -U /mnt >> /mnt/etc/fstab
 
 language:
-	sed -i "s/#  en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/g" /etc/locale.gen
-	echo LANG=en_US.UTF-8 > /etc/locale.conf
-	export LANG=en_US.UTF-8
-	ln -s /usr/share/zoneinfo/US/Eastern /etc/localtime
-	locale-gen
+	arch-chroot /mnt /bin/bash -c "echo setting language;\
+	sed -i 's/#en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/g' /etc/locale.gen;\
+	echo LANG=en_US.UTF-8 > /etc/locale.conf;\
+	export LANG=en_US.UTF-8;\
+	ln -s /usr/share/zoneinfo/US/Eastern /etc/localtime;\
+	locale-gen;"
 
 network:
-	echo ArchTerminal > /etc/hostname
-    echo 127.0.0.1 localhost > /etc/hosts
-	echo ::1 localhost >> /etc/hosts
-	echo 127.0.0.1 ArchTerminal >> /etc/hosts
+	arch-chroot /mnt /bin/bash -c "echo configuring network;\
+	echo ArchTerminal > /etc/hostname;\
+        echo 127.0.0.1 localhost > /etc/hosts;\
+	echo ::1 localhost >> /etc/hosts;\
+	echo 127.0.0.1 ArchTerminal >> /etc/hosts;"
 
 packages01:
-	pacman -Syu --noconfirm iwd wireless_tools netctl wpa_supplicant dialog dhclient grub-bios \
-	grub-common os-prober vim efibootmgr sudo ntp
-	
+	arch-chroot /mnt /bin/bash -c "pacman -Syu --noconfirm iwd wireless_tools \
+	netctl wpa_supplicant dialog dhclient grub-bios \
+	grub-common os-prober vim efibootmgr sudo ntp"
+
+packages02:
+	arch-chroot /mnt /bin/bash -c "pacman -Syu --noconfirm intel-ucode wget ufw tcpdump openssh tar gzip xz rsync less bat dhcpcd \
+	fakeroot bluez-utils unzip nitrogen tint2 slim slim-themes dmenu cups xorg-server xorg-xinit \
+ 	openbox automake acl autoconf picom util-linux bash-completion podman zenity xdg-desktop-portal \
+  	xdg-desktop-portal-gtk gcc yajl pkg-config make linux-headers"
+
 1915hack:
 	sed -i "s/MODULES=\"\"/MODULES=\"i915\"/g" /etc/mkinitcpio.conf
 
 bootloader_efi:
-	mkinitcpio -p linux
-    grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=Arch
-	cp /usr/share/locale/en\@quot/LC_MESSAGES/grub.mo /boot/grub/locale/en.mo
-	grub-mkconfig -o /boot/grub/grub.cfg
+	arch-chroot /mnt /bin/bash -c "mkinitcpio -p linux; \
+        grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=Arch; \
+	cp /usr/share/locale/en\@quot/LC_MESSAGES/grub.mo /boot/grub/locale/en.mo; \
+	grub-mkconfig -o /boot/grub/grub.cfg;"
 
 root_user:
-	echo $(ROOTPW) | passwd --stdin root
-	reboot 
-
-service_iwd:
-    systemctl enable --now iwd.service
-    iwctl station wlan0 scan
-	iwctl --passphrase=YoMama station wlan0 connect SSIDNAME
-	dhclient
+	@read -p "Enter root password: " ROOTPW; \
+	arch-chroot /mnt /bin/bash -c "echo $(ROOTPW) | passwd --stdin root"
 
 user:
 	useradd -G lp,games,video,audio,optical,storage,scanner,power,users,adm -d /home/sysop sysop
@@ -104,14 +106,15 @@ pacman:
 	sed -i 's/#ParallelDown/ParallelDown' /etc/pacman.conf
 	pacman -Syu
 
+service_iwd:
+    systemctl enable --now iwd.service
+    iwctl station wlan0 scan
+	iwctl --passphrase=YoMama station wlan0 connect SSIDNAME
+	dhclient
+
 ntp:
 	timedatectl set-ntp true
 
-packages02:
-	pacman -Syu --noconfirm intel-ucode wget ufw tcpdump openssh tar gzip xz rsync less bat dhcpcd \
-	fakeroot bluez-utils unzip nitrogen tint2 slim slim-themes dmenu cups xorg-server xorg-xinit \
- 	openbox automake acl autoconf picom util-linux bash-completion podman zenity xdg-desktop-portal \
-  	xdg-desktop-portal-gtk gcc yajl pkg-config make linux-headers
 
 # add this to each loader line in grub.cfg
 	initrd /intel-ucode.img
