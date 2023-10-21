@@ -89,7 +89,7 @@ packages02:
 	arch-chroot /mnt /bin/bash -c "pacman -Syu --noconfirm intel-ucode wget ufw tcpdump openssh tar gzip xz rsync less bat dhcpcd \
 	fakeroot bluez-utils unzip nitrogen tint2 slim slim-themes dmenu cups xorg-server xorg-xinit \
  	openbox automake acl autoconf picom util-linux bash-completion podman zenity xdg-desktop-portal \
-  	xdg-desktop-portal-gtk gcc yajl pkg-config make linux-headers"
+  	xdg-desktop-portal-gtk gcc yajl pkg-config make linux-headers alsa-utils alsa-lib pulseaudio"
 
 1915hack:
 	sed -i "s/MODULES=\"\"/MODULES=\"i915\"/g" /etc/mkinitcpio.conf
@@ -115,8 +115,8 @@ pacman:
 	pacman -Syu
 
 service_iwd:
-    systemctl enable --now iwd.service
-    iwctl station wlan0 scan
+	systemctl enable --now iwd.service
+	iwctl station wlan0 scan
 	iwctl --passphrase=YoMama station wlan0 connect SSIDNAME
 	dhclient
 
@@ -137,66 +137,11 @@ service_ufw:
  	ufw enable
 
 system76_lidswitch:
-    vim /etc/systemd/logind.conf
+	vim /etc/systemd/logind.conf
 	# uncomment HandleLidSwitch=suspend
 	systemctl restart systemd-logind.service
 
-service_cups:
-	pacman -S cups hplip
-	systemctl enable --now cups.service
-
-service_bluetooth:
-	pacman -S bluez-utils pulseaudio-bluetooth blueman
-	systemctl enable --now bluetooth.service
-	echo "run blueman-manager to connect"
-
-service_network:
-	systemctl enable systemd-networkd
-	systemctl enable systemd-resolved
-
-
-####### as non-root user
-# aur
-	su - sysop
-	mkdir ~/checkouts
-	cd ~/checkouts
-    git clone https://aur.archlinux.org/package-query.git
-    cd package-query/
-    makepkg -si
-    cd ~/checkouts
-	git clone https://aur.archlinux.org/yaourt.git
-	cd yaourt
-	makepkg -si
-
-# additional system76 software
-	yaourt -S system76-firmware-daemon-git	
-	yaourt -S firmware-manager-git
-	yaourt -S system76-driver
-	yaourt -S system76-acpi-dkms
-    	yaourt -S brightnessctl
-	systemctl enable --now system76
-	systemctl enable --now com.system76.PowerDaemon.service
-	system76-power profile balanced
-
-# additional aur software
-	yaourt -S hstr
-
-# openbox (non-root)
-	cd ~	
-	mkdir -p .config/openbox
-	cp /etc/xdg/openbox/{rc.xml,menu.xml,autostart,environment} ~/.config/openbox
-	chmod +x ~/.config/openbox/autostart
-	echo "exec openbox-session" > ~/.xinitrc
-	systemctl enable slim.service
-
-# sound
-    pacman -S alsa-utils alsa-lib pulseaudio
-    pulseaudio --check
-    pulseaudio --start
-    amixer sset 'Master' unmute
-	speaker-test -c 2
-
-# xorg trackpad fix
+openbox_trackpad:
 cat << EOF > /etc/X11/xorg.conf.d/40-libinput.conf
 Section "InputClass"
         Identifier "libinput touchpad catchall"
@@ -213,24 +158,73 @@ Section "InputClass"
 EndSection
 EOF
 
-# ls colors fix
+ls_colors:
 	echo alias ls='ls --color=auto' >> /etc/bash.bashrc
 	echo alias ll='ls -alh' >> /etc/bash.bashrc
 
-# user setup
-	echo 'exec openbox-session' > ~/.xinitrc
+service_cups:
+	pacman -S cups hplip
+	systemctl enable --now cups.service
 
-# podman setup
+service_bluetooth:
+	pacman -S bluez-utils pulseaudio-bluetooth blueman
+	systemctl enable --now bluetooth.service
+	echo "run blueman-manager to connect"
+
+service_network:
+	systemctl enable systemd-networkd
+	systemctl enable systemd-resolved
+
+aur_setup:
+	[ $(id -u) -eq 0 ] && echo "Run as regular user" && exit
+	mkdir ~/checkouts
+	cd ~/checkouts
+	git clone https://aur.archlinux.org/package-query.git
+	cd package-query/
+	makepkg -si
+	cd ~/checkouts
+	git clone https://aur.archlinux.org/yaourt.git
+	cd yaourt
+	makepkg -si
+
+system76_software:
+	[ $(id -u) -eq 0 ] && echo "Run as regular user" && exit
+	yaourt -S system76-firmware-daemon-git	
+	yaourt -S firmware-manager-git
+	yaourt -S system76-driver
+	yaourt -S system76-acpi-dkms
+    	yaourt -S brightnessctl
+	systemctl enable --now system76
+	systemctl enable --now com.system76.PowerDaemon.service
+	system76-power profile balanced
+
+openbox_install:
+	[ $(id -u) -eq 0 ] && echo "Run as regular user" && exit
+	cd ~	
+	mkdir -p .config/openbox
+	cp /etc/xdg/openbox/{rc.xml,menu.xml,autostart,environment} ~/.config/openbox
+	chmod +x ~/.config/openbox/autostart
+	echo "exec openbox-session" > ~/.xinitrc
+	systemctl enable slim.service
+
+audio:
+	[ $(id -u) -eq 0 ] && echo "Run as regular user" && exit
+	pulseaudio --check
+	pulseaudio --start
+	amixer sset 'Master' unmute
+	speaker-test -c 2
+
+podman_config:
 cat << EOF > /etc/containers/registries.conf
 [registries.search]
 registries = ['registry.access.redhat.com', 'registry.redhat.io', 'quay.io', 'docker.io']
 EOF
 podman search nginx
 
-# flatpak setup
+flatpak_config:
 	flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
 	flatpak update
 
-# additional applications
+flatpak_mega:
 	flatpak install nz.mega.MEGAsync
  
