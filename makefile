@@ -1,8 +1,13 @@
-.PHONY: all wifi partition filesystem bootstrap
+.PHONY: all base warning wifi partition mount bootstrap language network \
+	packages01 packages02 1915hack bootloader_efi root_user user pacman \
+	service_iwd ntp service_dhcpcd service_ufw system76_lidswitch \
+	openbox_trackpad ls_colors service_cups service_bluetooth service_network \
+	aur_setup system76_software openbox_install audio podman_config \
+	flatpak_config flatpak_mega
 
 all: warning
-base: wifi partition filesystem bootstrap language network packages01 packages02 \
-user pacman bootloader_efi root_user
+base: wifi partition mount bootstrap language network packages01 packages02 \
+	bootloader_efi root_user user pacman
 
 warning:
 cat << EOF
