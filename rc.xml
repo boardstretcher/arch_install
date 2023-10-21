@@ -40,8 +40,8 @@
                   'Active' - where the active window is -->
   </placement>
   <theme>
-    <name>AfterMidnight</name>
-    <titleLayout>NLIMC</titleLayout>
+    <name>Onyx</name>
+    <titleLayout>LIMC</titleLayout>
     <!--
       available characters are NDSLIMC, each can occur at most once.
       N: window icon
@@ -52,29 +52,29 @@
       S: shade (roll up/down)
       D: omnipresent (on all desktops).
   -->
-    <keepBorder>no</keepBorder>
+    <keepBorder>yes</keepBorder>
     <animateIconify>yes</animateIconify>
     <font place="ActiveWindow">
       <name>sans</name>
-      <size>8</size>
+      <size>11</size>
       <!-- font size in points -->
-      <weight>bold</weight>
+      <weight>normal</weight>
       <!-- 'bold' or 'normal' -->
       <slant>normal</slant>
       <!-- 'italic' or 'normal' -->
     </font>
     <font place="InactiveWindow">
       <name>sans</name>
-      <size>8</size>
+      <size>10</size>
       <!-- font size in points -->
-      <weight>bold</weight>
+      <weight>normal</weight>
       <!-- 'bold' or 'normal' -->
       <slant>normal</slant>
       <!-- 'italic' or 'normal' -->
     </font>
     <font place="MenuHeader">
       <name>sans</name>
-      <size>9</size>
+      <size>10</size>
       <!-- font size in points -->
       <weight>normal</weight>
       <!-- 'bold' or 'normal' -->
@@ -83,7 +83,7 @@
     </font>
     <font place="MenuItem">
       <name>sans</name>
-      <size>9</size>
+      <size>10</size>
       <!-- font size in points -->
       <weight>normal</weight>
       <!-- 'bold' or 'normal' -->
@@ -92,18 +92,18 @@
     </font>
     <font place="ActiveOnScreenDisplay">
       <name>sans</name>
-      <size>9</size>
+      <size>10</size>
       <!-- font size in points -->
-      <weight>bold</weight>
+      <weight>normal</weight>
       <!-- 'bold' or 'normal' -->
       <slant>normal</slant>
       <!-- 'italic' or 'normal' -->
     </font>
     <font place="InactiveOnScreenDisplay">
       <name>sans</name>
-      <size>9</size>
+      <size>10</size>
       <!-- font size in points -->
-      <weight>bold</weight>
+      <weight>normal</weight>
       <!-- 'bold' or 'normal' -->
       <slant>normal</slant>
       <!-- 'italic' or 'normal' -->
@@ -313,17 +313,7 @@
         <direction>down</direction>
       </action>
     </keybind>
-    <!-- Custom Keybindings -->
-    <keybind key="C-A-S-F12">
-      <action name="Exit">
-        <prompt>yes</prompt>
-      </action>
-    </keybind>
-    <keybind key="C-A-t">
-      <action name="Execute">
-        <command>terminator</command>
-      </action>
-    </keybind>
+    <!-- Keybindings for running applications -->
     <keybind key="A-F2">
       <action name="Execute">
         <command>dmenu_run</command>
@@ -351,7 +341,7 @@
     </keybind>
     <keybind key="C-S-1">
       <action name="Execute">
-      <command>system76-power profile battery</command>
+        <command>system76-power profile battery</command>
       </action>
     </keybind>
     <keybind key="C-S-2">
@@ -364,17 +354,8 @@
         <command>system76-power profile performance</command>
       </action>
     </keybind>
-
-    
-    <!-- Keybindings for running applications -->
-    <keybind key="W-e">
-      <action name="Execute">
-        <startupnotify>
-          <enabled>true</enabled>
-          <name>Konqueror</name>
-        </startupnotify>
-        <command>kfmclient openProfile filemanagement</command>
-      </action>
+    <keybind key="W-Up">
+      <action name="Maximize"/>
     </keybind>
   </keyboard>
   <mouse>
@@ -830,6 +811,8 @@
   </application>
 
   # end of the example
--->
+    -->
+    <application name="*">
+  </application>
   </applications>
 </openbox_config>
