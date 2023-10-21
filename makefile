@@ -1,5 +1,5 @@
 .PHONY: all base warning wifi partition mount bootstrap language network \
-	packages01 packages02 1915hack bootloader_efi root_user user pacman \
+	packages01 packages02 1915hack bootloader_efi root_user user \
 	service_iwd ntp service_dhcpcd service_ufw system76_lidswitch \
 	openbox_trackpad ls_colors service_cups service_bluetooth service_network \
 	aur_setup system76_software openbox_install audio podman_config \
@@ -23,8 +23,6 @@ wifi:
 	iwctl --passphrase=$$SSIDPW station wlan0 connect $$SSIDNAME
 
 partition:
-#!/bin/bash
-
 	lsblk -d -o NAME,SIZE,TYPE | grep 'disk'
 	echo "Enter the disk you want to partition (e.g., sda, sdb, etc.):"
 	read DISK
@@ -89,7 +87,8 @@ packages01:
 	grub-common os-prober vim efibootmgr sudo ntp"
 
 packages02:
-	arch-chroot /mnt /bin/bash -c "pacman -Syu --noconfirm intel-ucode wget ufw tcpdump openssh tar gzip xz rsync less bat dhcpcd \
+	arch-chroot /mnt /bin/bash -c "pacman -Syu --noconfirm intel-ucode wget ufw tcpdump \
+	openssh tar gzip xz rsync less bat dhcpcd \
 	fakeroot bluez-utils unzip nitrogen tint2 slim slim-themes dmenu cups xorg-server xorg-xinit \
  	openbox automake acl autoconf picom util-linux bash-completion podman zenity xdg-desktop-portal \
   	xdg-desktop-portal-gtk gcc yajl pkg-config make linux-headers alsa-utils alsa-lib pulseaudio"
@@ -105,17 +104,17 @@ bootloader_efi:
 
 root_user:
 	@read -p "Enter new root password: " ROOTPW; \
-	/bin/bash -c "echo root:$$ROOTPW | chpasswd"
+	arch-chroot /mnt /bin/bash -c "echo root:$$ROOTPW | chpasswd"
 
 user:
 	useradd -G lp,games,video,audio,optical,storage,scanner,power,users,adm -d /home/sysop sysop
 	echo "%wheel ALL=(ALL:ALL) NOPASSWD: ALL" > /etc/suoders.d/wheel_group
-	@read -p "Enter new sysop user password: " USERPW; \
+	@read -p "Enter new sysop user password: " USERPW
 	/bin/bash -c "echo root:$$USERPW | chpasswd"
 
 pacman:
-	sed -i 's/#ParallelDown/ParallelDown' /etc/pacman.conf
-	pacman -Syu
+	arch-chroot /mnt /bin/bash -c "sed -i 's/#ParallelDown/ParallelDown' /etc/pacman.conf; \
+	pacman -Syu"
 
 service_iwd:
 	systemctl enable --now iwd.service
@@ -125,7 +124,6 @@ service_iwd:
 
 ntp:
 	timedatectl set-ntp true
-
 
 # add this to each loader line in grub.cfg
 	initrd /intel-ucode.img
