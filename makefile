@@ -12,12 +12,12 @@ Do NOT run all of this makefile at once.
 EOF
 
 wifi:
-	@read -p "Enter SSID Name: " SSIDNAME; \
-	read -p "Enter SSID Password: " SSIDPW; \
-	rfkill unblock 0; \
-	rfkill unblock 1; \
-	iwctl station wlan0 scan; \
-	iwctl --passphrase=$(SSIDPW) station wlan0 connect $(SSIDNAME)
+	read -p "Enter SSID Name: " SSIDNAME
+	read -p "Enter SSID Password: " SSIDPW
+	rfkill unblock 0
+	rfkill unblock 1
+	iwctl station wlan0 scan
+	iwctl --passphrase=$$SSIDPW station wlan0 connect $$SSIDNAME
 
 partition:
 	( echo o ) | fdisk $(DISK)
@@ -94,13 +94,14 @@ bootloader_efi:
 	grub-mkconfig -o /boot/grub/grub.cfg;"
 
 root_user:
-	@read -p "Enter root password: " ROOTPW; \
-	arch-chroot /mnt /bin/bash -c "echo $(ROOTPW) | passwd --stdin root"
+	@read -p "Enter new root password: " ROOTPW; \
+	/bin/bash -c "echo root:$$ROOTPW | chpasswd"
 
 user:
 	useradd -G lp,games,video,audio,optical,storage,scanner,power,users,adm -d /home/sysop sysop
-	passwd sysop
 	echo "%wheel ALL=(ALL:ALL) NOPASSWD: ALL" > /etc/suoders.d/wheel_group
+	@read -p "Enter new sysop user password: " USERPW; \
+	/bin/bash -c "echo root:$$USERPW | chpasswd"
 
 pacman:
 	sed -i 's/#ParallelDown/ParallelDown' /etc/pacman.conf
