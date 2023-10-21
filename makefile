@@ -1,5 +1,3 @@
-DISK=/dev/nvme0n1
-
 .PHONY: all wifi partition filesystem bootstrap
 
 all: warning
