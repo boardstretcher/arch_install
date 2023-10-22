@@ -1,68 +1,46 @@
+#initrd /intel-ucode.img
+
+# NOTE: to get make and git on a new arch install, be sure to only run 
+# pacman -Sy so that the kernel versions dont conflict while 
+# installing
+
+# On a newly booted USB Arch ISO you will want to:
+#
+# ./script_wifi.sh
+# pacman -Sy
+# ./script_partition.sh
+# make base
+# reboot
+#
+# Then once rebooted and in the new arch system
+# 
+#
+#
 .PHONY: all base warning wifi partition mount bootstrap language network \
 	packages01 packages02 1915hack bootloader_efi root_user user \
-	service_iwd ntp service_dhcpcd service_ufw system76_lidswitch \
-	openbox_trackpad ls_colors service_cups service_bluetooth service_network \
+	service_iwd ntp service_dhcpcd service_ufw fix_lidswitch \
+	fix_trackpad config_ls service_cups service_bluetooth service_network \
 	aur_setup system76_software openbox_install audio podman_config \
 	flatpak_config flatpak_mega
 
 all: warning
-base: wifi partition mount bootstrap language network packages01 packages02 \
-	bootloader_efi root_user user pacman
+
+base: bootstrap language network packages01 packages02 bootloader_efi root_user user pacman
+firstboot: ntp service_dhcpcd service_ufw fix_lidswitch config_ls service_bluetooth \
+	service_network aur_setup
 
 warning:
-cat << EOF
-Do NOT run all of this makefile at once. 
-EOF
+	echo "Do NOT run all of this makefile at once." 
 
-wifi:
-	rfkill unblock 0
-	rfkill unblock 1
-	@read -p "Enter SSID Name: " SSIDNAME; \
-	read -p -s "Enter SSID Password: " SSIDPW; \	
-	iwctl --passphrase=$$SSIDPW station wlan0 connect $$SSIDNAME
+wifi: service_iwd
+	./script_wifi.sh
+	dhclient
 
 partition:
-	lsblk -d -o NAME,SIZE,TYPE | grep 'disk'
-	echo "Enter the disk you want to partition (e.g., sda, sdb, etc.):"
-	read DISK
-	DISK_SIZE=$(lsblk -b -d -o SIZE -n /dev/$DISK)
-	DISK_SIZE_GIB=$((DISK_SIZE / (1024 * 1024 * 1024)))
-	RAM_SIZE=$(free -g | awk '/^Mem:/{print $2}')
-	echo "Selected Disk: /dev/$DISK"
-	echo "Disk Size: $DISK_SIZE_GIB GiB"
-	echo "RAM Size: $RAM_SIZE GiB"
-
-	(
-	echo g # Create a new empty GPT partition table
-	echo d # Delete the partition
-	echo n # Add a new partition
-	echo 1 # Partition number
-	echo   # First sector (Accept default: 1)
-	echo +4G  # Last sector (4G size)
-	echo t   # Change partition type
-	echo 1   # EFI System
-	echo n   # Add a new partition
-	echo 2   # Partition number
-	echo     # First sector (Accept default)
-	echo +"$RAM_SIZE"G # Last sector
-	echo n   # Add a new partition
-	echo 3   # Partition number
-	echo     # First sector (Accept default)
-	echo     # Use the rest of the disk
-	echo w   # Write changes
-	) | fdisk /dev/$DISK
-	mkfs.fat -F32 /dev/${DISK}1
-	mkswap /dev/${DISK}2
-	mkfs.ext4 /dev/${DISK}3
-
-mount:
-	swapon /dev/nvme0n1p3
-	mount /dev/nvme0n1p2 /mnt
-	mkdir -p /mnt/boot
-	mount /dev/nvme0n1p1 /mnt/boot
+	./script_partition.sh
 
 bootstrap:
-	pacstrap /mnt base linux linux-firmware iwd vim git curl
+	pacstrap /mnt base linux linux-firmware iwd vim git curl bat
 	genfstab -U /mnt >> /mnt/etc/fstab
 
 language:
@@ -106,10 +84,10 @@ root_user:
 	arch-chroot /mnt /bin/bash -c "echo root:$$ROOTPW | chpasswd"
 
 user:
-	useradd -G lp,games,video,audio,optical,storage,scanner,power,users,adm -d /home/sysop sysop
-	echo "%wheel ALL=(ALL:ALL) NOPASSWD: ALL" > /etc/suoders.d/wheel_group
-	@read -p "Enter new sysop user password: " USERPW
-	/bin/bash -c "echo root:$$USERPW | chpasswd"
+	arch-chroot /mnt /bin/bash -c 'echo "%wheel ALL=(ALL:ALL) NOPASSWD: ALL" > /etc/sudoers.d/wheel_group;'
+	arch-chroot /mnt /bin/bash -c 'useradd -G lp,games,video,audio,optical,storage,scanner,power,users,adm -d /home/sysop sysop;'
+	@read -p "Enter new sysop user password: " USERPW \
+	arch-chroot /mnt /bin/bash -c "echo root:$$USERPW | chpasswd"
 
 pacman:
 	arch-chroot /mnt /bin/bash -c "sed -i 's/#ParallelDown/ParallelDown' /etc/pacman.conf; \
@@ -117,66 +95,61 @@ pacman:
 
 service_iwd:
 	systemctl enable --now iwd.service
-	iwctl station wlan0 scan
-	iwctl --passphrase=YoMama station wlan0 connect SSIDNAME
-	dhclient
 
 ntp:
 	timedatectl set-ntp true
 
-# add this to each loader line in grub.cfg
-	initrd /intel-ucode.img
 
 service_dhcpcd:
 	systemctl enable --now dhcpcd.service
 
 service_ufw:
 	systemctl enable --now ufw.service
- 	ufw default deny incoming
+	ufw default deny incoming
 	ufw default allow outgoing
- 	ufw enable
+	ufw enable
 
-system76_lidswitch:
-	vim /etc/systemd/logind.conf
-	# uncomment HandleLidSwitch=suspend
+fix_lidswitch:
+	sed -i 's/#HandleLidSwitch=suspend/HandleLidSwitch=suspend/g' /etc/systemd/logind.conf
 	systemctl restart systemd-logind.service
 
-openbox_trackpad:
-cat << EOF > /etc/X11/xorg.conf.d/40-libinput.conf
-Section "InputClass"
-        Identifier "libinput touchpad catchall"
-        MatchIsTouchpad "on"
-        MatchDevicePath "/dev/input/event*"
-        Driver "libinput"
-        Option "Tapping" "on"
-        Option "TapButton1" "1"
-        Option "TapButton2" "3"
-        Option "TapButton3" "2"
-        Option "VertTwoFingerScroll" "on"
-        Option "HorizTwoFingerScroll" "on"
-	Option "NaturalScrolling" "on"
-EndSection
-EOF
+fix_trackpad:
+	bash -c '\
+	cat << EOF > /etc/X11/xorg.conf.d/40-libinput.conf \
+Section "InputClass" \
+        Identifier "libinput touchpad catchall" \
+        MatchIsTouchpad "on" \
+        MatchDevicePath "/dev/input/event*" \
+        Driver "libinput" \
+        Option "Tapping" "on" \
+        Option "TapButton1" "1" \
+        Option "TapButton2" "3" \
+        Option "TapButton3" "2" \
+        Option "VertTwoFingerScroll" "on" \
+        Option "HorizTwoFingerScroll" "on" \
+	Option "NaturalScrolling" "on" \
+EndSection \
+EOF \
+'
 
-ls_colors:
-	echo alias ls='ls --color=auto' >> /etc/bash.bashrc
-	echo alias ll='ls -alh' >> /etc/bash.bashrc
+config_ls:
+	echo alias ls="ls --color=auto" >> /etc/bash.bashrc
+	echo alias ll="ls -alh" >> /etc/bash.bashrc
 
 service_cups:
-	pacman -S cups hplip
+	pacman -Syu --noconfirm cups hplip
 	systemctl enable --now cups.service
 
 service_bluetooth:
-	pacman -S bluez-utils pulseaudio-bluetooth blueman
+	pacman -Syu --noconfirm bluez-utils pulseaudio-bluetooth blueman
 	systemctl enable --now bluetooth.service
 	echo "run blueman-manager to connect"
 
 service_network:
-	systemctl enable systemd-networkd
+	#systemctl enable systemd-networkd
 	systemctl enable systemd-resolved
 
-aur_setup:
-	[ $(id -u) -eq 0 ] && echo "Run as regular user" && exit
+USER_aur_setup:
 	mkdir ~/checkouts
 	cd ~/checkouts
 	git clone https://aur.archlinux.org/package-query.git
@@ -187,19 +160,17 @@ aur_setup:
 	cd yaourt
 	makepkg -si
 
-system76_software:
-	[ $(id -u) -eq 0 ] && echo "Run as regular user" && exit
+USER_system76_software:
 	yaourt -S system76-firmware-daemon-git	
 	yaourt -S firmware-manager-git
 	yaourt -S system76-driver
 	yaourt -S system76-acpi-dkms
-    	yaourt -S brightnessctl
+	yaourt -S brightnessctl
 	systemctl enable --now system76
 	systemctl enable --now com.system76.PowerDaemon.service
 	system76-power profile balanced
 
-openbox_install:
-	[ $(id -u) -eq 0 ] && echo "Run as regular user" && exit
+USER_openbox_install:
 	cd ~	
 	mkdir -p .config/openbox
 	cp /etc/xdg/openbox/{rc.xml,menu.xml,autostart,environment} ~/.config/openbox
@@ -207,24 +178,25 @@ openbox_install:
 	echo "exec openbox-session" > ~/.xinitrc
 	systemctl enable slim.service
 
-audio:
-	[ $(id -u) -eq 0 ] && echo "Run as regular user" && exit
+USER_audio:
 	pulseaudio --check
 	pulseaudio --start
 	amixer sset 'Master' unmute
 	speaker-test -c 2
 
 podman_config:
-cat << EOF > /etc/containers/registries.conf
-[registries.search]
-registries = ['registry.access.redhat.com', 'registry.redhat.io', 'quay.io', 'docker.io']
-EOF
-podman search nginx
+	bash -c "\
+	cat << EOF > /etc/containers/registries.conf \
+[registries.search] \
+registries = ['registry.access.redhat.com', 'registry.redhat.io', 'quay.io', 'docker.io'] \
+EOF \
+"
+	podman search nginx
 
-flatpak_config:
+USER_flatpak_config:
 	flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
 	flatpak update
 
-flatpak_mega:
+USER_flatpak_mega:
 	flatpak install nz.mega.MEGAsync
  
