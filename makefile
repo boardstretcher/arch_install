@@ -88,10 +88,10 @@ packages01:
 
 packages02:
 	arch-chroot /mnt /bin/bash -c "pacman -Syu --noconfirm intel-ucode wget ufw tcpdump \
-	openssh tar gzip xz rsync less bat dhcpcd \
-	fakeroot bluez-utils unzip nitrogen tint2 slim slim-themes dmenu cups xorg-server xorg-xinit \
- 	openbox automake acl autoconf picom util-linux bash-completion podman zenity xdg-desktop-portal \
-  	xdg-desktop-portal-gtk gcc yajl pkg-config make linux-headers alsa-utils alsa-lib pulseaudio"
+	openssh tar gzip xz rsync less bat dhcpcd fakeroot bluez-utils unzip neovim \
+ 	automake acl autoconf bash-completion podman xdg-desktop-portal xdg-desktop-portal-hyprland \
+  	xdg-desktop-portal-gtk gcc yajl pkg-config make linux-headers alsa-utils alsa-lib pulseaudio \
+	hyprland waybar rofi slurp grim"
 
 1915hack:
 	sed -i "s/MODULES=\"\"/MODULES=\"i915\"/g" /etc/mkinitcpio.conf
