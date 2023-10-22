@@ -1,3 +1,4 @@
+# add this to each loader line in grub.cfg
 #initrd /intel-ucode.img
 
 # NOTE: to get make and git on a new arch install, be sure to only run 
@@ -20,14 +21,19 @@
 	packages01 packages02 1915hack bootloader_efi root_user user \
 	service_iwd ntp service_dhcpcd service_ufw fix_lidswitch \
 	fix_trackpad config_ls service_cups service_bluetooth service_network \
-	aur_setup system76_software openbox_install audio podman_config \
-	flatpak_config flatpak_mega
+	USER_aur_setup USER_software01 USER_system76_software USER_openbox_install \
+	USER_audio USER_podman_config USER_flatpak_config USER_flatpak_mega userinstall
 
 all: warning
 
 base: bootstrap language network packages01 packages02 bootloader_efi root_user user pacman
+
 firstboot: ntp service_dhcpcd service_ufw fix_lidswitch config_ls service_bluetooth \
-	service_network aur_setup
+	service_network 
+
+userinstall: USER_aur_setup USER_software01 USER_audio USER_flatpak_config \
+	USER_flatpak_mega
+	./script_vim.sh	
 
 warning:
 	echo "Do NOT run all of this makefile at once." 
@@ -61,14 +67,14 @@ network:
 packages01:
 	arch-chroot /mnt /bin/bash -c "pacman -Syu --noconfirm iwd wireless_tools \
 	netctl wpa_supplicant dialog dhclient grub-bios \
-	grub-common os-prober vim efibootmgr sudo ntp"
+	grub-common os-prober vim efibootmgr sudo ntp cpupower"
 
 packages02:
 	arch-chroot /mnt /bin/bash -c "pacman -Syu --noconfirm intel-ucode wget ufw tcpdump \
 	openssh tar gzip xz rsync less bat dhcpcd fakeroot bluez-utils unzip neovim \
  	automake acl autoconf bash-completion podman xdg-desktop-portal xdg-desktop-portal-hyprland \
   	xdg-desktop-portal-gtk gcc yajl pkg-config make linux-headers alsa-utils alsa-lib pulseaudio \
-	hyprland waybar rofi slurp grim"
+	hyprland waybar rofi slurp grim kitty terminator firefox man-db flatpak"
 
 1915hack:
 	sed -i "s/MODULES=\"\"/MODULES=\"i915\"/g" /etc/mkinitcpio.conf
@@ -150,25 +156,23 @@ service_network:
 	systemctl enable systemd-resolved
 
 USER_aur_setup:
-	mkdir ~/checkouts
-	cd ~/checkouts
-	git clone https://aur.archlinux.org/package-query.git
-	cd package-query/
-	makepkg -si
-	cd ~/checkouts
-	git clone https://aur.archlinux.org/yaourt.git
-	cd yaourt
-	makepkg -si
+	mkdir -p ~/checkouts
+	cd ~/checkouts;	git clone https://aur.archlinux.org/package-query.git
+	cd ~/checkouts/package-query; makepkg -si --noconfirm
+	cd ~/checkouts;	git clone https://aur.archlinux.org/yaourt.git
+	cd ~/checkouts/yaourt; makepkg -si --noconfirm
 
 USER_system76_software:
-	yaourt -S system76-firmware-daemon-git	
-	yaourt -S firmware-manager-git
-	yaourt -S system76-driver
-	yaourt -S system76-acpi-dkms
-	yaourt -S brightnessctl
+	yaourt -S --noconfirm system76-firmware-daemon-git	
+	yaourt -S --noconfirm firmware-manager-git
+	yaourt -S --noconfirm system76-driver
+	yaourt -S --noconfirm system76-acpi-dkms
 	systemctl enable --now system76
 	systemctl enable --now com.system76.PowerDaemon.service
 	system76-power profile balanced
+
+USER_software01:
+	yaourt -S --noconfirm brightnessctl
 
 USER_openbox_install:
 	cd ~	
@@ -182,15 +186,10 @@ USER_audio:
 	pulseaudio --check
 	pulseaudio --start
 	amixer sset 'Master' unmute
-	speaker-test -c 2
+	#speaker-test -c 2
 
-podman_config:
-	bash -c "\
-	cat << EOF > /etc/containers/registries.conf \
-[registries.search] \
-registries = ['registry.access.redhat.com', 'registry.redhat.io', 'quay.io', 'docker.io'] \
-EOF \
-"
+USER_podman_config:
+	sudo echo -e "[registries.search] \n registries = ['registry.access.redhat.com', 'registry.redhat.io', 'quay.io', 'docker.io']" > /etc/containers/registries.conf
 	podman search nginx
 
 USER_flatpak_config:
@@ -200,3 +199,4 @@ USER_flatpak_config:
 USER_flatpak_mega:
 	flatpak install nz.mega.MEGAsync
  
+USER_hypr_config:
