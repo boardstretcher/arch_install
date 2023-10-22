@@ -71,7 +71,7 @@ packages01:
 
 packages02:
 	arch-chroot /mnt /bin/bash -c "pacman -Syu --noconfirm intel-ucode wget ufw tcpdump \
-	openssh tar gzip xz rsync less bat dhcpcd fakeroot bluez-utils unzip neovim \
+	openssh tar gzip xz rsync less bat dhcpcd fakeroot bluez-utils unzip neovim otf-font-awesome \
  	automake acl autoconf bash-completion podman xdg-desktop-portal xdg-desktop-portal-hyprland \
   	xdg-desktop-portal-gtk gcc yajl pkg-config make linux-headers alsa-utils alsa-lib pulseaudio \
 	hyprland waybar rofi slurp grim kitty terminator firefox man-db flatpak"
