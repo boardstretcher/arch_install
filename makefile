@@ -15,11 +15,10 @@ Do NOT run all of this makefile at once.
 EOF
 
 wifi:
-	read -p "Enter SSID Name: " SSIDNAME
-	read -p "Enter SSID Password: " SSIDPW
 	rfkill unblock 0
 	rfkill unblock 1
-	iwctl station wlan0 scan
+	@read -p "Enter SSID Name: " SSIDNAME; \
+	read -p -s "Enter SSID Password: " SSIDPW; \	
 	iwctl --passphrase=$$SSIDPW station wlan0 connect $$SSIDNAME
 
 partition:
