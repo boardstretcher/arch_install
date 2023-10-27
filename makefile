@@ -74,7 +74,7 @@ packages02:
 	openssh tar gzip xz rsync less bat dhcpcd fakeroot bluez-utils unzip neovim otf-font-awesome \
  	automake acl autoconf bash-completion podman xdg-desktop-portal xdg-desktop-portal-hyprland \
   	xdg-desktop-portal-gtk gcc yajl pkg-config make linux-headers alsa-utils alsa-lib pulseaudio \
-	hyprland waybar rofi slurp grim kitty terminator firefox man-db flatpak"
+	hyprland waybar rofi slurp grim kitty terminator firefox man-db flatpak swaylock"
 
 1915hack:
 	sed -i "s/MODULES=\"\"/MODULES=\"i915\"/g" /etc/mkinitcpio.conf
