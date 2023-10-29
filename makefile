@@ -67,9 +67,9 @@ network:
 packages01:
 	arch-chroot /mnt /bin/bash -c "pacman -Syu --noconfirm iwd wireless_tools \
 	netctl wpa_supplicant dialog dhclient grub-bios grub-common os-prober 
-	vim efibootmgr sudo ntp cpupower intel-ucode wget ufw tcpdump \
+	vim efibootmgr sudo ntp cpupower intel-ucode wget ufw tcpdump sed which grep \
 	openssh tar gzip xz rsync less bat dhcpcd fakeroot bluez-utils unzip neovim \
- 	automake acl autoconf bash-completion podman  gcc yajl pkg-config make \
+ 	automake acl autoconf bash-completion podman  gcc yajl pkg-config make awk \
 	linux-headers alsa-utils alsa-lib pulseaudio man-db flatpak"
 
 packages02:
