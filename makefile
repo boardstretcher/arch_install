@@ -66,15 +66,16 @@ network:
 
 packages01:
 	arch-chroot /mnt /bin/bash -c "pacman -Syu --noconfirm iwd wireless_tools \
-	netctl wpa_supplicant dialog dhclient grub-bios \
-	grub-common os-prober vim efibootmgr sudo ntp cpupower"
+	netctl wpa_supplicant dialog dhclient grub-bios grub-common os-prober 
+	vim efibootmgr sudo ntp cpupower intel-ucode wget ufw tcpdump \
+	openssh tar gzip xz rsync less bat dhcpcd fakeroot bluez-utils unzip neovim \
+ 	automake acl autoconf bash-completion podman  gcc yajl pkg-config make \
+	linux-headers alsa-utils alsa-lib pulseaudio man-db flatpak"
 
 packages02:
-	arch-chroot /mnt /bin/bash -c "pacman -Syu --noconfirm intel-ucode wget ufw tcpdump \
-	openssh tar gzip xz rsync less bat dhcpcd fakeroot bluez-utils unzip neovim otf-font-awesome \
- 	automake acl autoconf bash-completion podman xdg-desktop-portal xdg-desktop-portal-hyprland \
-  	xdg-desktop-portal-gtk gcc yajl pkg-config make linux-headers alsa-utils alsa-lib pulseaudio \
-	hyprland waybar rofi slurp grim kitty terminator firefox man-db flatpak swaylock"
+	arch-chroot /mnt /bin/bash -c "pacman -Syu --noconfirm otf-font-awesome \
+	xdg-desktop-portal xdg-desktop-portal-hyprland xdg-desktop-portal-gtk \
+	hyprland waybar rofi slurp grim kitty terminator firefox swaylock"
 
 1915hack:
 	sed -i "s/MODULES=\"\"/MODULES=\"i915\"/g" /etc/mkinitcpio.conf
@@ -122,7 +123,7 @@ fix_lidswitch:
 fix_trackpad:
 	bash -c '\
 	cat << EOF > /etc/X11/xorg.conf.d/40-libinput.conf \
-Section "InputClass" \
+	Section "InputClass" \
         Identifier "libinput touchpad catchall" \
         MatchIsTouchpad "on" \
         MatchDevicePath "/dev/input/event*" \
@@ -198,5 +199,3 @@ USER_flatpak_config:
 
 USER_flatpak_mega:
 	flatpak install nz.mega.MEGAsync
- 
-USER_hypr_config:
