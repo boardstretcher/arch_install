@@ -75,7 +75,8 @@ packages01:
 packages02:
 	arch-chroot /mnt /bin/bash -c "pacman -Syu --noconfirm otf-font-awesome \
 	xdg-desktop-portal xdg-desktop-portal-hyprland xdg-desktop-portal-gtk \
-	hyprland waybar rofi slurp grim kitty terminator firefox swaylock"
+	hyprland waybar rofi slurp grim kitty terminator firefox swaylock dunst \
+	bottom neofetch"
 
 1915hack:
 	sed -i "s/MODULES=\"\"/MODULES=\"i915\"/g" /etc/mkinitcpio.conf
