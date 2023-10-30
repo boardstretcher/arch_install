@@ -1,10 +1,6 @@
 arch_install
 ============
 
-The ole arch installer "scripts"
+The old arch installer "scripts" are in /archived now and are useless but interesting historically
 
-They aren't all executable, more of a bunch of "remember how to do this" notes than anything
-
-I keep these updated so that installing arch is a bit faster
-
-Sort of
+The new way revolves around 'makefile' and the 'script_*' files

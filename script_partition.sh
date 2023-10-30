@@ -39,7 +39,11 @@ echo +"$RAM_SIZE"G # Last sector
 echo n   # Add a new partition
 echo 3   # Partition number
 echo     # First sector (Accept default)
-echo     # Use the rest of the disk
+echo +100G    # Use 100G for root
+echo n   # Add a new partition
+echo 4   # Partition number
+echo     # First sector (Accept default)
+echo     # Use rest of disk for home
 echo w   # Write changes
 ) | fdisk /dev/$DISK
 
@@ -47,7 +51,13 @@ mkfs.fat -F32 /dev/${DISK}p1
 mkswap /dev/${DISK}p2
 mkfs.ext4 /dev/${DISK}p3
 
+cryptsetup --type luks2 luksFormat /dev/${DISK}p4
+cryptsetup luksOpen /dev/${DISK}p4 luks
+mkfs.ext4 /dev/mapper/luks
+
 swapon /dev/${DISK}p2
 mount /dev/${DISK}p3 /mnt
 mkdir -p /mnt/boot
 mount /dev/${DISK}p1 /mnt/boot
+mkdir -p /mnt/home
+mount /dev/mapper/luks /mnt/home

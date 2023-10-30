@@ -6,7 +6,9 @@
 # git clone --depth 1 https://github.com/AstroNvim/AstroNvim ~/.config/nvim
 # nvim
 # -----------
-
+#
+# mount -o remount,size=4G /run/archiso/cowspace
+# cow_spacesize=4G
 # NOTE: to get make and git on a new arch install, be sure to only run 
 # pacman -Sy so that the kernel versions dont conflict while 
 # installing
@@ -53,7 +55,7 @@ partition:
 
 bootstrap:
 	pacstrap /mnt base linux linux-firmware iwd vim git curl bat
-	genfstab -U /mnt >> /mnt/etc/fstab
+	genfstab -Up /mnt >> /mnt/etc/fstab
 
 language:
 	arch-chroot /mnt /bin/bash -c "echo setting language;\
@@ -112,7 +114,6 @@ service_iwd:
 
 ntp:
 	timedatectl set-ntp true
-
 
 service_dhcpcd:
 	systemctl enable --now dhcpcd.service
