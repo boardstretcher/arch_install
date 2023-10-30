@@ -9,6 +9,7 @@
 #
 # mount -o remount,size=4G /run/archiso/cowspace
 # cow_spacesize=4G
+
 # NOTE: to get make and git on a new arch install, be sure to only run 
 # pacman -Sy so that the kernel versions dont conflict while 
 # installing
@@ -54,6 +55,7 @@ partition:
 	./script_partition.sh
 
 bootstrap:
+	mount -o remount,size=4G /run/archiso/cowspace
 	pacstrap /mnt base linux linux-firmware iwd vim git curl bat
 	genfstab -Up /mnt >> /mnt/etc/fstab
 
