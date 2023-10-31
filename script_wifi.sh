@@ -10,3 +10,4 @@ rfkill unblock 1
 read -p "Enter SSID Name: " SSIDNAME
 read -s -p "Enter SSID Password: " SSIDPW	
 iwctl --passphrase=$SSIDPW station wlan0 connect $SSIDNAME
+dhclient

@@ -1,13 +1,9 @@
 # TO ADD:
 # --
-# add this to each loader line in grub.cfg
-# initrd /intel-ucode.img
-# --
 # git clone --depth 1 https://github.com/AstroNvim/AstroNvim ~/.config/nvim
 # nvim
 # -----------
 #
-# mount -o remount,size=4G /run/archiso/cowspace
 # cow_spacesize=4G
 
 # NOTE: to get make and git on a new arch install, be sure to only run 
@@ -31,14 +27,16 @@
 	service_iwd ntp service_dhcpcd service_ufw fix_lidswitch \
 	fix_trackpad config_ls service_cups service_bluetooth service_network \
 	USER_aur_setup USER_software01 USER_system76_software USER_openbox_install \
-	USER_audio USER_podman_config USER_flatpak_config USER_flatpak_mega userinstall
+	USER_audio USER_podman_config USER_flatpak_config USER_flatpak_mega userinstall \
+	msg1
 
 all: warning
 
-base: bootstrap language network packages01 packages02 bootloader_efi root_user user pacman
+base: partition bootstrap language network packages01 packages02 bootloader_efi \ 
+	root_user user pacman msg1
 
 firstboot: ntp service_dhcpcd service_ufw fix_lidswitch config_ls service_bluetooth \
-	service_network 
+	service_network service_iwd
 
 userinstall: USER_aur_setup USER_software01 USER_audio USER_flatpak_config \
 	USER_flatpak_mega
@@ -46,6 +44,9 @@ userinstall: USER_aur_setup USER_software01 USER_audio USER_flatpak_config \
 
 warning:
 	echo "Do NOT run all of this makefile at once." 
+
+msg1:
+	echo -e "\n\n\n\nMust be time to unmount any USB stuff and REBOOT\n\n\n\n"
 
 wifi: service_iwd
 	./script_wifi.sh
@@ -55,9 +56,9 @@ partition:
 	./script_partition.sh
 
 bootstrap:
-	mount -o remount,size=4G /run/archiso/cowspace
 	pacstrap /mnt base linux linux-firmware iwd vim git curl bat
 	genfstab -Up /mnt >> /mnt/etc/fstab
+	echo "luks /dev/nvme0n1p4" > /mnt/etc/crypttab
 
 language:
 	arch-chroot /mnt /bin/bash -c "echo setting language;\
@@ -76,7 +77,7 @@ network:
 
 packages01:
 	arch-chroot /mnt /bin/bash -c "pacman -Syu --noconfirm iwd wireless_tools \
-	netctl wpa_supplicant dialog dhclient grub-bios grub-common os-prober 
+	netctl wpa_supplicant dialog dhclient grub-bios grub-common os-prober \
 	efibootmgr sudo ntp cpupower intel-ucode wget ufw tcpdump sed which grep \
 	openssh tar gzip xz rsync less bat dhcpcd fakeroot bluez-utils unzip neovim \
  	automake acl autoconf bash-completion podman  gcc yajl pkg-config make awk \
@@ -93,9 +94,13 @@ packages02:
 
 bootloader_efi:
 	arch-chroot /mnt /bin/bash -c "mkinitcpio -p linux; \
-        grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=Arch; \
+	sed -i 's/#GRUB_ENABLE_CRYPTODISK=y/GRUB_ENABLE_CRYPTODISK=y/g' /etc/default/grub; \
+	sed -i 's/GRUB_CMDLINE_LINUX=\"\"/GRUB_CMDLINE_LINUX=\"cryptdevice=\/dev\/nvme0n1p4:luks\"/g' /etc/default/grub; \
+	grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=Arch Linux; \
 	cp /usr/share/locale/en\@quot/LC_MESSAGES/grub.mo /boot/grub/locale/en.mo; \
-	grub-mkconfig -o /boot/grub/grub.cfg;"
+	grub-mkconfig -o /boot/grub/grub.cfg; \
+	sed -i 's/MODULES=()/MODULES=(ext4)/g' /etc/mkinitcpio.conf; \
+	sed -i 's/ filesystems/ encrypt filesystems/g' /etc/mkinitcpio.conf;"
 
 root_user:
 	@read -p "Enter new root password: " ROOTPW; \
@@ -103,12 +108,12 @@ root_user:
 
 user:
 	arch-chroot /mnt /bin/bash -c 'echo "%wheel ALL=(ALL:ALL) NOPASSWD: ALL" > /etc/sudoers.d/wheel_group;'
-	arch-chroot /mnt /bin/bash -c 'useradd -G lp,games,video,audio,optical,storage,scanner,power,users,adm -d /home/sysop sysop;'
-	@read -p "Enter new sysop user password: " USERPW \
-	arch-chroot /mnt /bin/bash -c "echo root:$$USERPW | chpasswd"
+	arch-chroot /mnt /bin/bash -c 'useradd -G lp,games,video,audio,optical,storage,scanner,power,users,adm,wheel -d /home/sysop sysop;'
+	@read -p "Enter new sysop user password: " USERPW; \
+	arch-chroot /mnt /bin/bash -c "echo sysop:$$USERPW | chpasswd"
 
 pacman:
-	arch-chroot /mnt /bin/bash -c "sed -i 's/#ParallelDown/ParallelDown' /etc/pacman.conf; \
+	arch-chroot /mnt /bin/bash -c "sed -i 's/#ParallelDown/ParallelDown/g' /etc/pacman.conf; \
 	pacman -Syu"
 
 service_iwd:
@@ -150,8 +155,8 @@ EOF \
 '
 
 config_ls:
-	echo alias ls="ls --color=auto" >> /etc/bash.bashrc
-	echo alias ll="ls -alh" >> /etc/bash.bashrc
+	echo 'alias ls="ls --color=auto"' >> /etc/bash.bashrc
+	echo 'alias ll="ls -alh"' >> /etc/bash.bashrc
 
 service_cups:
 	pacman -Syu --noconfirm cups hplip
