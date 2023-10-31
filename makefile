@@ -28,7 +28,7 @@
 	fix_trackpad config_ls service_cups service_bluetooth service_network \
 	USER_aur_setup USER_software01 USER_system76_software USER_openbox_install \
 	USER_audio USER_podman_config USER_flatpak_config USER_flatpak_mega userinstall \
-	msg1
+	USER_git_config msg1
 
 all: warning
 
@@ -39,7 +39,7 @@ firstboot: ntp service_dhcpcd service_ufw fix_lidswitch config_ls service_blueto
 	service_network service_iwd
 
 userinstall: USER_aur_setup USER_software01 USER_audio USER_flatpak_config \
-	USER_flatpak_mega
+	USER_flatpak_mega USER_podman_config USER_git_config
 	./script_vim.sh	
 
 warning:
@@ -214,3 +214,7 @@ USER_flatpak_config:
 
 USER_flatpak_mega:
 	flatpak install nz.mega.MEGAsync
+
+USER_git_config:
+	git config --global user.email "sysop@example.com"
+	git config --global user.name "sysop"
