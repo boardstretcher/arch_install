@@ -1,0 +1,11 @@
+# throw this into /etc/polkit-1/rules.d/
+# and systemctl restart polkit.service
+#
+# then you will be able to run grub-customizer in wayland/hyprland
+
+polkit.addRule(function(action, subject) {
+  if (action.id == "net.launchpad.danielrichter2007.pkexec.grub-customizer" &&
+      subject.isInGroup("wheel")) {
+    return polkit.Result.YES;
+  }
+});

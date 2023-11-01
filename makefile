@@ -87,7 +87,9 @@ packages02:
 	arch-chroot /mnt /bin/bash -c "pacman -Syu --noconfirm otf-font-awesome \
 	xdg-desktop-portal xdg-desktop-portal-hyprland xdg-desktop-portal-gtk \
 	hyprland waybar rofi slurp grim kitty terminator firefox swaylock dunst \
-	bottom neofetch"
+	bottom neofetch brightnessctl imagemagick vim-airline vim-airline-themes \
+	swww xplr pipewire wireplumber polkit-kde-agent qt5-wayland qt6-wayland \
+	cliphist" 
 
 1915hack:
 	sed -i "s/MODULES=\"\"/MODULES=\"i915\"/g" /etc/mkinitcpio.conf
@@ -189,6 +191,7 @@ USER_system76_software:
 
 USER_software01:
 	yaourt -S --noconfirm brightnessctl
+	yaourt -S --noconfirm hstr
 
 USER_openbox_install:
 	cd ~	
